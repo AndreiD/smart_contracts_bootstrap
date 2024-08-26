@@ -4,29 +4,27 @@ pragma solidity ^0.8.13;
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MemeCoin is ERC20Permit, Ownable {
+contract MemeCoin is ERC20, Ownable, ERC20Permit {
     mapping(address => bool) private _blacklist;
+    uint256 public version = 1234;
 
-    constructor() ERC20("MemeCoin", "MEME") ERC20Permit("MemeCoin") {
-        _mint(msg.sender, 21_000_000 * 10 ** decimals()); // Mint the initial supply to the contract deployer
+    constructor(string memory _name, string memory _symbol, address _initialOwner)
+        ERC20(_name, _symbol)
+        Ownable(_initialOwner)
+        ERC20Permit(_name)
+    {
+        _mint(_initialOwner, 1_000_000 * 10 ** decimals()); // Mint the initial supply to the contract deployer
     }
 
-    // Override the _beforeTokenTransfer hook to prevent transfers from or to blacklisted addresses
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal override {
-        require(!_blacklist[from], "ERC20: sender is blacklisted");
-        require(!_blacklist[to], "ERC20: recipient is blacklisted");
-        super._beforeTokenTransfer(from, to, amount);
+    function _update(address from, address to, uint256 value) internal virtual override {
+        require(!_blacklist[from], "sender is blacklisted");
+        require(!_blacklist[to], "recipient is blacklisted");
+        super._update(from, to, value);
     }
 
     // Function to blacklist an address, restricted to accounts with the blacklist role
-    function blacklist(address account) external onlyOwner {
-        _blacklist[account] = true;
-    }
-
-    // Function to remove an address from the blacklist, restricted to accounts with the blacklist role
-    function unblacklist(address account) external onlyOwner {
-        require(hasRole(BLACKLIST_ROLE, msg.sender), "ERC20: must have blacklist role to unblacklist");
-        _blacklist[account] = false;
+    function setBlacklist(address account, bool isBlacklist) external onlyOwner {
+        _blacklist[account] = isBlacklist;
     }
 
     // Function to check if an address is blacklisted
