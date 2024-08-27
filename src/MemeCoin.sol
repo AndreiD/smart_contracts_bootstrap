@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract MemeCoin is ERC20, Ownable, ERC20Permit {
     mapping(address => bool) private _blacklist;
-    uint256 public version = 1234;
+    uint256 public version = 1235;
 
     constructor(string memory _name, string memory _symbol, address _initialOwner)
         ERC20(_name, _symbol)
